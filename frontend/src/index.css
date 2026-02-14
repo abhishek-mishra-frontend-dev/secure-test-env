@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #edf2f5;
+  --color-white: #ffffff;
+  --color-white-accent: #FAFAFA;
+  --color-red: #F63049;
+  --color-black: #1F1F21;
+  --color-black-accent: #363538;
+  --color-gray-light: #F6F6F6;
+  --color-gray-dark: #848386;
+
+  --shadow-minimal: 0 2px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --font-sans: "Public Sans", sans-serif;
+}
+
+html {
+  font-family: var(--font-sans);
+}
