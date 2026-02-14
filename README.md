@@ -20,10 +20,10 @@ This project simulates a production-style proctoring environment that:
 ## 🌐 Live Deployment
 
 Frontend (Vercel):  
-👉 **[YOUR_VERCEL_URL_HERE]**
+👉 **[https://secure-test-env-tawny.vercel.app/](https://secure-test-env-tawny.vercel.app/)**
 
 Backend (Render):  
-👉 **[YOUR_RENDER_URL_HERE]**
+👉 **[https://secure-test-env.onrender.com/](https://secure-test-env.onrender.com/)**
 
 > ⚠️ Note: Backend runs on Render free tier. First request may take 20–40 seconds due to cold start.
 
@@ -117,7 +117,7 @@ In-Memory Attempt Store
 ---
 
 ## 📂 Project Structure
-
+```
 secure-test-environment/
 │
 ├── backend/
@@ -135,8 +135,7 @@ secure-test-environment/
 │   ├── img-1.png
 │   ├── img-2.png
 └── README.md
-
-
+```
 ---
 
 ## 🔧 Local Setup Instructions
@@ -144,28 +143,28 @@ secure-test-environment/
 ### 1️⃣ Clone Repository
 
 git clone: [https://github.com/abhishek-mishra-frontend-dev/secure-test-env](https://github.com/abhishek-mishra-frontend-dev/secure-test-env)
+```bash
 cd secure-test-environment
-
-
+```
 ---
 
 ### 2️⃣ Start Backend
-
+```bash
 cd backend
 npm install
 npm start
-
+```
 Backend runs at:
 http://localhost:5000
 
 ---
 
 ### 3️⃣ Start Frontend
-
+```bash
 cd frontend
 npm install
 npm run dev
-
+```
 
 Create a `.env` file inside `frontend`:
 
@@ -195,7 +194,7 @@ const PORT = process.env.PORT || 5000;
 
 - Root Directory: `frontend`
 - Environment Variable:
-VITE_API_BASE_URL=https://your-render-url.onrender.com
+VITE_API_BASE_URL=[https://secure-test-env.onrender.com/](https://secure-test-env.onrender.com/)
 
 - Redeploy after adding environment variable
 
