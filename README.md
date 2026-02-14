@@ -31,7 +31,7 @@ Backend (Render):
 
 ### 🖥️ Assessment Dashboard
 
-![Assessment Dashboard](./screenshots/img-1.png) (./screenshots/img-2.png)
+![Assessment Dashboard](./screenshots/img-1.png)
 
 ---
 

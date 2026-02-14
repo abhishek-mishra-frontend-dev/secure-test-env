@@ -15,7 +15,7 @@ const Assessment = ({ attemptId, initialIP, currentIP, duration }) => (
             <h3 className="text-lg font-bold text-slate-800 mb-4">Sample Assessment</h3>
             <div className="space-y-4">
                 <label className="block text-slate-700 font-medium">1. What is the capital of France?</label>
-                <textarea rows="4" className="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                <textarea rows="4" className="w-full p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" />
             </div>
         </div>
     </div>
