@@ -11,6 +11,33 @@ const attempts = {};
 
 const PORT = process.env.PORT || 5000;
 
+/** Extract real client IP address */
+const getClientIP = (req) => {
+
+  const forwarded = req.headers["x-forwarded-for"];
+
+  let ip;
+
+  if (forwarded) {
+    // Take first IP only
+    ip = forwarded.split(",")[0].trim();
+  } else {
+    ip = req.socket.remoteAddress;
+  }
+
+  // Normalize IPv6-mapped IPv4 (::ffff:123.45.67.89)
+  if (ip && ip.startsWith("::ffff:")) {
+    ip = ip.replace("::ffff:", "");
+  }
+
+  // Normalize IPv6 localhost
+  if (ip === "::1") {
+    ip = "127.0.0.1";
+  }
+
+  return ip;
+};
+
 /** Routes */
 app.get("/", (req, res) => {
   res.send("Secure Test Backend Running");
@@ -19,22 +46,7 @@ app.get("/", (req, res) => {
 /** start-attempt */
 app.post("/start-attempt", (req, res) => {
   const attemptId = uuidv4();
-
-  const normalizeIP = (ip) => {
-    if (!ip) return ip;
-    if (ip.startsWith("::ffff:")) {
-      return ip.replace("::ffff:", "");
-    }
-    return ip;
-  };
-
-  const forwarded = req.headers["x-forwarded-for"];
-  let ipAddress = forwarded
-    ? forwarded.split(",")[0].trim()
-    : req.socket.remoteAddress;
-
-  ipAddress = normalizeIP(ipAddress);
-
+  const ipAddress = getClientIP(req);
   const timestamp = new Date().toISOString();
 
   attempts[attemptId] = {
@@ -62,12 +74,10 @@ app.get("/check-ip/:attemptId", (req, res) => {
     return res.status(404).json({ message: "Attempt not found" });
   }
 
-  const currentIP =
-    req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-
+  const currentIP = getClientIP(req);
   const initialIP = attempts[attemptId].initialIP;
 
-  const ipChanged = currentIP !== initialIP;
+  const ipChanged = currentIP && initialIP && currentIP !== initialIP;
 
   res.json({
     currentIP,

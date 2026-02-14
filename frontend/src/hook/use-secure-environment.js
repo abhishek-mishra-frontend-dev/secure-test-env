@@ -26,14 +26,6 @@ const UseSecureEnvironment = (isStarted) => {
     });
   };
 
-  const showError = (msg) => {
-    toast.error(msg, {
-      position: "top-right",
-      autoClose: 4000,
-      hideProgressBar: false,
-    });
-  };
-
   /** Keep queueRef synced + persist locally */
   useEffect(() => {
     queueRef.current = eventQueue;
@@ -68,7 +60,6 @@ const UseSecureEnvironment = (isStarted) => {
         }
 
       } catch (error) {
-        toast.error("Unable to start secure session.");
         console.error("Error starting attempt:", error);
       }
     };
@@ -90,9 +81,7 @@ const UseSecureEnvironment = (isStarted) => {
 
         if (newIP !== initialIP) {
 
-          // IP change is more serious → error toast
-          showError("Network change detected. Assessment continues but has been flagged.");
-
+          showWarning("Network change detected. The session continues under monitoring.");
           setEventQueue((prev) => [
             ...prev,
             {
