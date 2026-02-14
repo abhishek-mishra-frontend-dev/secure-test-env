@@ -9,6 +9,8 @@ app.use(cors());
 app.use(express.json());
 const attempts = {};
 
+const PORT = process.env.PORT || 5000;
+
 /** Routes */
 app.get("/", (req, res) => {
   res.send("Secure Test Backend Running");
@@ -105,6 +107,6 @@ app.get("/attempt/:attemptId", (req, res) => {
 });
 
 /** Start Server */
-app.listen(5000, () => {
-  console.log("Secure Test Backend running on port 5000");
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
