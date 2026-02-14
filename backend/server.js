@@ -20,8 +20,20 @@ app.get("/", (req, res) => {
 app.post("/start-attempt", (req, res) => {
   const attemptId = uuidv4();
 
-  const ipAddress =
-    req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const normalizeIP = (ip) => {
+    if (!ip) return ip;
+    if (ip.startsWith("::ffff:")) {
+      return ip.replace("::ffff:", "");
+    }
+    return ip;
+  };
+
+  const forwarded = req.headers["x-forwarded-for"];
+  let ipAddress = forwarded
+    ? forwarded.split(",")[0].trim()
+    : req.socket.remoteAddress;
+
+  ipAddress = normalizeIP(ipAddress);
 
   const timestamp = new Date().toISOString();
 

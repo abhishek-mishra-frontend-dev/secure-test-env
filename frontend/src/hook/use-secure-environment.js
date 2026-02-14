@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 
 /** Library Imports */
-import axios from "axios";
 import { toast } from "react-toastify";
+import axios from "axios";
 
 /** Main Export Hook */
 const UseSecureEnvironment = (isStarted) => {
@@ -13,12 +13,11 @@ const UseSecureEnvironment = (isStarted) => {
   const [currentIP, setCurrentIP] = useState(null);
   const [eventQueue, setEventQueue] = useState([]);
   const [duration, setDuration] = useState(0);
-
   const queueRef = useRef([]);
 
-  /**
-   * Toast Helpers
-   */
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+  /** Toast Helpers*/
   const showWarning = (msg) => {
     toast.warning(msg, {
       position: "top-right",
@@ -35,17 +34,13 @@ const UseSecureEnvironment = (isStarted) => {
     });
   };
 
-  /**
-   * Keep queueRef synced + persist locally
-   */
+  /** Keep queueRef synced + persist locally */
   useEffect(() => {
     queueRef.current = eventQueue;
     localStorage.setItem("eventQueue", JSON.stringify(eventQueue));
   }, [eventQueue]);
 
-  /**
-   * Load stored queue (offline recovery)
-   */
+  /** Load stored queue (offline recovery) */
   useEffect(() => {
     const saved = localStorage.getItem("eventQueue");
     if (saved) {
@@ -53,16 +48,14 @@ const UseSecureEnvironment = (isStarted) => {
     }
   }, []);
 
-  /**
-   * Start Attempt (Only after Start clicked)
-   */
+  /**Start Attempt (Only after Start clicked)*/
   useEffect(() => {
     if (!isStarted) return;
 
     const startAttempt = async () => {
       try {
         const response = await axios.post(
-          "http://localhost:5000/start-attempt"
+          `${API_BASE}/start-attempt`
         );
 
         setAttemptId(response.data.attemptId);
@@ -83,16 +76,14 @@ const UseSecureEnvironment = (isStarted) => {
     startAttempt();
   }, [isStarted]);
 
-  /**
-   * IP Monitoring (Every 10 seconds)
-   */
+  /**IP Monitoring (Every 10 seconds)*/
   useEffect(() => {
     if (!attemptId || !isStarted) return;
 
     const interval = setInterval(async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/check-ip/${attemptId}`
+          `${API_BASE}/check-ip/${attemptId}`
         );
 
         const newIP = response.data.currentIP;
@@ -124,9 +115,7 @@ const UseSecureEnvironment = (isStarted) => {
 
   }, [attemptId, initialIP, isStarted]);
 
-  /**
-   * Browser Monitoring Layer
-   */
+  /**Browser Monitoring Layer*/
   useEffect(() => {
     if (!attemptId || !isStarted) return;
 
@@ -184,9 +173,7 @@ const UseSecureEnvironment = (isStarted) => {
 
   }, [attemptId, isStarted]);
 
-  /**
-   * Batch Sender (Every 5 seconds)
-   */
+  /**Batch Sender (Every 5 seconds)*/
   useEffect(() => {
     if (!attemptId || !isStarted) return;
 
@@ -196,7 +183,7 @@ const UseSecureEnvironment = (isStarted) => {
 
       try {
         await axios.post(
-          `http://localhost:5000/log-events/${attemptId}`,
+          `${API_BASE}/log-events/${attemptId}`,
           { events: queueRef.current }
         );
 
@@ -224,7 +211,8 @@ const UseSecureEnvironment = (isStarted) => {
     return () => clearInterval(interval);
   }, [isStarted]);
 
-  const formatTime = (seconds) => {
+  /* Utility to format duration in HH:MM:SS */
+  const FormatTime = (seconds) => {
     const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
     const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
     const secs = String(seconds % 60).padStart(2, "0");
@@ -235,7 +223,7 @@ const UseSecureEnvironment = (isStarted) => {
     attemptId,
     initialIP,
     currentIP,
-    formattedDuration: formatTime(duration)
+    formattedDuration: FormatTime(duration)
   };
 };
 
