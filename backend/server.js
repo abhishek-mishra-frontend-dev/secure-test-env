@@ -9,6 +9,11 @@ app.use(cors());
 app.use(express.json());
 const attempts = {};
 
+/** Routes */
+app.get("/", (req, res) => {
+  res.send("Secure Test Backend Running");
+});
+
 /** start-attempt */
 app.post("/start-attempt", (req, res) => {
   const attemptId = uuidv4();
