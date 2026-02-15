@@ -65,7 +65,6 @@ Backend (Render):
 Detects:
 
 - Tab switching
-- Window blur
 - Fullscreen exit
 - Copy attempts
 - Paste attempts

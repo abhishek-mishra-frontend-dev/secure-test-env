@@ -6,11 +6,12 @@ import UseSecureEnvironment from '../../hook/use-secure-environment';
 
 /** Components */
 import Assessment from '../assessment/assessment';
+import AssessmentSummary from '../assessment-summary/assessment-summary';
 
 const SecureEnvironment = () => {
 
     const [isStarted, setIsStarted] = useState(false);
-    const { attemptId, initialIP, currentIP, formattedDuration } = UseSecureEnvironment(isStarted);
+    const { attemptId, initialIP, currentIP, formattedDuration, endAssessment, resetAssessment, isEnded } = UseSecureEnvironment(isStarted);
 
     const handleStart = () => {
         setIsStarted(true);
@@ -54,12 +55,22 @@ const SecureEnvironment = () => {
                             Start Assessment
                         </button>
                     </div>
+                ) : isEnded ? (
+                    <AssessmentSummary
+                        attemptId={attemptId}
+                        duration={formattedDuration}
+                        onRestart={() => {
+                            resetAssessment();
+                            setIsStarted(false);
+                        }}
+                    />
                 ) : attemptId ? (
                     <Assessment
                         attemptId={attemptId}
                         initialIP={initialIP}
                         currentIP={currentIP}
                         duration={formattedDuration}
+                        onEnd={endAssessment}
                     />
                 ) : (
                     <p className="text-center text-slate-500">

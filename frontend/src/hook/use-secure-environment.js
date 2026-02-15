@@ -8,6 +8,7 @@ import axios from "axios";
 /** Main Export Hook */
 const UseSecureEnvironment = (isStarted) => {
 
+  const [isEnded, setIsEnded] = useState(false);
   const [attemptId, setAttemptId] = useState(null);
   const [initialIP, setInitialIP] = useState(null);
   const [currentIP, setCurrentIP] = useState(null);
@@ -29,7 +30,7 @@ const UseSecureEnvironment = (isStarted) => {
   /** Keep queueRef synced + persist locally */
   useEffect(() => {
     queueRef.current = eventQueue;
-    localStorage.setItem("eventQueue", JSON.stringify(eventQueue));
+    localStorage.setItem("eventQueue", JSON.stringify([]));
   }, [eventQueue]);
 
   /** Load stored queue (offline recovery) */
@@ -42,7 +43,7 @@ const UseSecureEnvironment = (isStarted) => {
 
   /**Start Attempt (Only after Start clicked)*/
   useEffect(() => {
-    if (!isStarted) return;
+    if (!isStarted || attemptId) return;
 
     const startAttempt = async () => {
       try {
@@ -65,11 +66,11 @@ const UseSecureEnvironment = (isStarted) => {
     };
 
     startAttempt();
-  }, [isStarted]);
+  }, [isStarted, attemptId]);
 
   /**IP Monitoring (Every 10 seconds)*/
   useEffect(() => {
-    if (!attemptId || !isStarted) return;
+    if (!attemptId || !isStarted || isEnded) return;
 
     const interval = setInterval(async () => {
       try {
@@ -102,13 +103,15 @@ const UseSecureEnvironment = (isStarted) => {
 
     return () => clearInterval(interval);
 
-  }, [attemptId, initialIP, isStarted]);
+  }, [attemptId, initialIP, isStarted, isEnded]);
 
   /**Browser Monitoring Layer*/
   useEffect(() => {
-    if (!attemptId || !isStarted) return;
+    if (!attemptId || !isStarted || isEnded) return;
 
     const logEvent = (eventType) => {
+
+      if (!attemptId || isEnded) return;
 
       const messages = {
         TAB_SWITCH: "Tab switch detected.",
@@ -117,7 +120,6 @@ const UseSecureEnvironment = (isStarted) => {
         PASTE_ATTEMPT: "Paste action detected.",
       };
 
-      // Minor violations → warning
       if (messages[eventType]) {
         showWarning(messages[eventType]);
       }
@@ -135,8 +137,6 @@ const UseSecureEnvironment = (isStarted) => {
       if (document.hidden) logEvent("TAB_SWITCH");
     };
 
-    const handleBlur = () => logEvent("WINDOW_BLUR");
-
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
         logEvent("FULLSCREEN_EXIT");
@@ -147,24 +147,22 @@ const UseSecureEnvironment = (isStarted) => {
     const handlePaste = () => logEvent("PASTE_ATTEMPT");
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleBlur);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     document.addEventListener("copy", handleCopy);
     document.addEventListener("paste", handlePaste);
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener("copy", handleCopy);
       document.removeEventListener("paste", handlePaste);
     };
 
-  }, [attemptId, isStarted]);
+  }, [attemptId, isStarted, isEnded]);
 
   /**Batch Sender (Every 5 seconds)*/
   useEffect(() => {
-    if (!attemptId || !isStarted) return;
+    if (!attemptId || !isStarted || isEnded) return;
 
     const interval = setInterval(async () => {
 
@@ -182,23 +180,21 @@ const UseSecureEnvironment = (isStarted) => {
       } catch (error) {
         console.error("Batch send failed:", error);
       }
-
     }, 5000);
-
     return () => clearInterval(interval);
 
-  }, [attemptId, isStarted]);
+  }, [attemptId, isStarted, isEnded]);
 
   /** Timer */
   useEffect(() => {
-    if (!isStarted) return;
+    if (!isStarted || isEnded) return;
 
     const interval = setInterval(() => {
       setDuration((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isStarted]);
+  }, [isStarted, isEnded]);
 
   /* Utility to format duration in HH:MM:SS */
   const FormatTime = (seconds) => {
@@ -208,11 +204,51 @@ const UseSecureEnvironment = (isStarted) => {
     return `${hrs}:${mins}:${secs}`;
   };
 
+  /* End Assessment Handler */
+  const endAssessment = async () => {
+    try {
+
+      const pendingEvents = [...queueRef.current];
+
+      if (pendingEvents.length > 0 && attemptId) {
+        await axios.post(
+          `${API_BASE}/log-events/${attemptId}`,
+          { events: pendingEvents }
+        );
+      }
+
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+
+      setIsEnded(true);
+      setEventQueue([]);
+      localStorage.setItem("eventQueue", JSON.stringify([]));
+
+    } catch (error) {
+      console.error("Error ending assessment:", error);
+    }
+  };
+
+  /* Reset State for New Attempt */
+  const resetAssessment = () => {
+    setIsEnded(false);
+    setAttemptId(null);
+    setInitialIP(null);
+    setCurrentIP(null);
+    setDuration(0);
+    setEventQueue([]);
+    localStorage.setItem("eventQueue", JSON.stringify([]));
+  };
+
   return {
     attemptId,
     initialIP,
     currentIP,
-    formattedDuration: FormatTime(duration)
+    formattedDuration: FormatTime(duration),
+    isEnded,
+    endAssessment,
+    resetAssessment
   };
 };
 
